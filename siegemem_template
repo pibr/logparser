@@ -1,0 +1,16 @@
+Value Filldown Timestamp (\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d)
+Value Required HeapSize (\d+)
+Value Required HeapUsed (\d+)
+Value Required TotalFreeMemory (\d+)
+Value Required LargestFreeChunk (\d+)
+Value Required TotalFreeMemoryInSmallBlocks (\d+)
+
+Start
+  ^Modify: ${Timestamp}
+  ^Heap size\s+: ${HeapSize}
+  ^Heap used\s+: ${HeapUsed}
+  ^Total free memory\s+: ${TotalFreeMemory}
+  ^Largest free chunk\s+: ${LargestFreeChunk}
+  ^Total free memory in small blocks\s+: ${TotalFreeMemoryInSmallBlocks} -> Record
+
+
