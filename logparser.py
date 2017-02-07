@@ -16,18 +16,22 @@ from optparse import OptionParser
 
 
 class Parser:
+    """
+    Parses log file.
+    """
     def __init__(self, options):
-        self.input = options
-        self.template = options
-        self.output = options
-        self.format = options
+        self.input = options.input
+        self.template = options.template
+        self.output = options.output
+        self.format = options.format
         self.header = []
         self.results = [list()]
 
     def write(self):
-        if self.format == "csv":
+        if self.format == 'csv':
             with open(self.output, 'w') as csvfile:
-                csvWriter = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='\n')
+                csvWriter = csv.writer(
+                    csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='\n')
                 csvWriter.writerow(self.header)
                 for row in self.results:
                     csvWriter.writerow(row)
@@ -35,7 +39,8 @@ class Parser:
     def parse(self):
         # Open the template file, and initialise a new TextFSM object with it.
         fsm = textfsm.TextFSM(open(self.template))
-        self.results = fsm.ParseText(self.input)
+        with open(self.input, 'r') as input:
+            self.results = fsm.ParseText(input.read())
         self.header = fsm.header
         self.write()
 
@@ -48,7 +53,7 @@ if __name__ == '__main__':
                               action="store", type="string", dest="output", default="output.txt",
                               help="reads input to parse from FILE", metavar="FILE")
     options_parser.add_option("-f", "--format",
-                              action="store", type="string", dest="format", choices=["csv", "jira", "nice"], default="csv",
+                              action="store", type="string", dest="format", default="csv",
                               help="define output file FORMAT: csv, jira, nice [default: %default]", metavar="FORMAT")
     options_parser.add_option("-t", "--template",
                               action="store", type="string", dest="template", default="siegemem_template",
