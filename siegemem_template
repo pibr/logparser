@@ -4,6 +4,17 @@ Value Required HeapUsed (\d+)
 Value Required TotalFreeMemory (\d+)
 Value Required LargestFreeChunk (\d+)
 Value Required TotalFreeMemoryInSmallBlocks (\d+)
+Value Available4ByteBlocks (\d+)
+Value Available8ByteBlocks (\d+)
+Value Available12ByteBlocks (\d+)
+Value Available16ByteBlocks (\d+)
+Value Available20ByteBlocks (\d+)
+Value Available24ByteBlocks (\d+)
+Value Available28ByteBlocks (\d+)
+Value Available32ByteBlocks (\d+)
+Value Available36ByteBlocks (\d+)
+Value Available40ByteBlocks (\d+)
+Value Available44ByteBlocks (\d+)
 
 Start
   ^Modify: ${Timestamp}
@@ -11,6 +22,16 @@ Start
   ^Heap used\s+: ${HeapUsed}
   ^Total free memory\s+: ${TotalFreeMemory}
   ^Largest free chunk\s+: ${LargestFreeChunk}
+  ^Available 4 byte blocks\s+: ${Available4ByteBlocks}
+  ^Available 8 byte blocks\s+: ${Available8ByteBlocks}
+  ^Available 12 byte blocks\s+: ${Available12ByteBlocks}
+  ^Available 16 byte blocks\s+: ${Available16ByteBlocks}
+  ^Available 20 byte blocks\s+: ${Available20ByteBlocks}
+  ^Available 24 byte blocks\s+: ${Available24ByteBlocks}
+  ^Available 28 byte blocks\s+: ${Available28ByteBlocks}
+  ^Available 32 byte blocks\s+: ${Available32ByteBlocks}
+  ^Available 36 byte blocks\s+: ${Available36ByteBlocks}
+  ^Available 40 byte blocks\s+: ${Available40ByteBlocks}
+  ^Available 44 byte blocks\s+: ${Available44ByteBlocks}
   ^Total free memory in small blocks\s+: ${TotalFreeMemoryInSmallBlocks} -> Record
-
-
+  

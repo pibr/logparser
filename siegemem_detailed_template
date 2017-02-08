@@ -1,0 +1,15 @@
+Value Filldown Timestamp (\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d)
+Value Required Class (\S+)
+Value Required MemoryUsed (\d+)
+Value Required ObjectCount (\d+)
+
+Start
+  ^Modify: ${Timestamp}
+  ^Class, Memory Used \(bytes\), Object Count -> ObjectsDetails
+
+ObjectsDetails
+  ^\s*NATIVE MEMORY USAGE -> Start
+  ^${Class}, ${MemoryUsed}, ${ObjectCount} -> Record
+
+
+
