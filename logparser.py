@@ -14,6 +14,11 @@ import textfsm
 import csv
 from optparse import OptionParser
 
+def str_icomp(a, b):
+    try:
+        return a.strip().upper() == b.strip().upper()
+    except AttributeError:
+        return a == b
 
 class Parser:
     """
@@ -28,19 +33,28 @@ class Parser:
         self.results = [list()]
 
     def write(self):
-        if self.format == 'csv':
-            with open(self.output, 'w') as csvfile:
+        with open(self.output, 'w') as csvfile:
+            if str_icomp(self.format, 'csv'):
                 csvWriter = csv.writer(
                     csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='\n')
                 csvWriter.writerow(self.header)
                 for row in self.results:
                     csvWriter.writerow(row)
+            elif str_icomp(self.format, 'jira'):
+                csvWriter = csv.writer(
+                    csvfile, delimiter='|', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='|\n')
+                for field in self.header:
+                    field = '|' + field + '|'
+                csvWriter.writerow(self.header)
+                for row in self.results:
+                    row[0] = '|' + row[0]
+                    csvWriter.writerow(row)
 
     def parse(self):
         # Open the template file, and initialise a new TextFSM object with it.
         fsm = textfsm.TextFSM(open(self.template))
-        with open(self.input, 'r') as input:
-            self.results = fsm.ParseText(input.read())
+        with open(self.input, 'r') as input_file:
+            self.results = fsm.ParseText(input_file.read())
         self.header = fsm.header
         self.write()
 
