@@ -9,5 +9,5 @@ Start
   ^\s*NATIVE MEMORY USAGE -> ObjectsDetails
 
 ObjectsDetails
-  ^\Unspecified, (\d+), (\d+) -> Start
+  ^\Unspecified, -?(\d+), -?(\d+) -> Start
   ^${Class}, ${MemoryUsed}, ${ObjectCount} -> Record

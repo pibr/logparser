@@ -9,8 +9,11 @@
             "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
             "cwd": "${workspaceRoot}",
+            //"args": [
+            //    "-i../../Logs/HDGHMC-134949/input.txt", "-f csv", "-o../../Logs/HDGHMC-134949/results.txt", "-tsiegemem_native_detailed_template"
+            //],
             "args": [
-                "-i../../Logs/HDGHMC-134949/input.txt", "-fjira", "-o../../Logs/HDGHMC-134949/results.txt", "-tsiegemem_native_detailed_template"
+                "-i../../Logs/HDGHMC-134949/results.txt", "-f Class,ByteCode", "-yObjectCount", "-xTimestamp", "-o../../Logs/HDGHMC-134949/results_parsed.txt", "-udatetime,counter"
             ],
             "debugOptions": [
                 "WaitOnAbnormalExit",

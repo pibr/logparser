@@ -9,21 +9,24 @@
 """
 Parses provided log file according to rules given in template file and writes result file in desired format
 """
-
-import textfsm
 import csv
 from optparse import OptionParser
 
-def str_icomp(a, b):
-    try:
-        return a.strip().upper() == b.strip().upper()
-    except AttributeError:
-        return a == b
+import textfsm
 
-class Parser:
+def str_icomp(lhs, rhs):
+    """Compares two strins ignoring case"""
+    try:
+        return lhs.strip().upper() == rhs.strip().upper()
+    except AttributeError:
+        return lhs == rhs
+
+
+class Parser(object):
     """
     Parses log file.
     """
+
     def __init__(self, options):
         self.input = options.input
         self.template = options.template
@@ -33,51 +36,65 @@ class Parser:
         self.results = [list()]
 
     def write(self):
-        with open(self.output, 'w') as csvfile:
+        """writes data in given format"""
+        with open(self.output, 'w') as output_file:
             if str_icomp(self.format, 'csv'):
-                csvWriter = csv.writer(
-                    csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='\n')
-                csvWriter.writerow(self.header)
+                csv_writer = csv.writer(
+                    output_file, delimiter=';', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='\n')
+                csv_writer.writerow(self.header)
                 for row in self.results:
-                    csvWriter.writerow(row)
+                    csv_writer.writerow(row)
             elif str_icomp(self.format, 'jira'):
-                csvWriter = csv.writer(
-                    csvfile, delimiter='|', quoting=csv.QUOTE_MINIMAL, dialect=csv.excel, lineterminator='|\n')
-                for field in self.header:
-                    field = '|' + field + '|'
-                csvWriter.writerow(self.header)
+                line = '|'
+                for element in self.header:
+                    element = '|' + element + '|'
+                    line += element
+                line += '|\n'
+                output_file.write(line)
+                line = '|'
                 for row in self.results:
-                    row[0] = '|' + row[0]
-                    csvWriter.writerow(row)
+                    for element in row:
+                        element = element + '|'
+                        line += element
+                    line += '\n'
+                    output_file.write(line)
+                    line = '|'
+            elif str_icomp(self.format, 'nice'):
+                result = str(self.header) + '\n'
+                for line in self.results:
+                    result += str(line) + '\n'
+                output_file.write(result)
 
     def parse(self):
+        """parses input with rules applied in template"""
         # Open the template file, and initialise a new TextFSM object with it.
         fsm = textfsm.TextFSM(open(self.template))
         with open(self.input, 'r') as input_file:
+            #the weakest part of this desing - you need to read the whole file
             self.results = fsm.ParseText(input_file.read())
         self.header = fsm.header
         self.write()
 
 if __name__ == '__main__':
-    options_parser = OptionParser()
-    options_parser.add_option("-i", "--input",
+    OPTIONS_PARSER = OptionParser()
+    OPTIONS_PARSER.add_option("-i", "--input",
                               action="store", type="string", dest="input", default="input.log",
                               help="reads input to parse from FILE", metavar="FILE")
-    options_parser.add_option("-o", "--output",
+    OPTIONS_PARSER.add_option("-o", "--output",
                               action="store", type="string", dest="output", default="output.txt",
                               help="reads input to parse from FILE", metavar="FILE")
-    options_parser.add_option("-f", "--format",
+    OPTIONS_PARSER.add_option("-f", "--format",
                               action="store", type="string", dest="format", default="csv",
                               help="define output file FORMAT: csv, jira, nice [default: %default]", metavar="FORMAT")
-    options_parser.add_option("-t", "--template",
+    OPTIONS_PARSER.add_option("-t", "--template",
                               action="store", type="string", dest="template", default="siegemem_template",
                               help="reads parsing rules from template FILE", metavar="FILE")
 
-    options_parser.set_usage('usage: logparser.py [options]')
-    (options, args) = options_parser.parse_args()
+    OPTIONS_PARSER.set_usage('usage: logparser.py [options]')
+    (OPTIONS, ARGS) = OPTIONS_PARSER.parse_args()
     try:
-        parser = Parser(options)
-        parser.parse()
+        PARSER = Parser(OPTIONS)
+        PARSER.parse()
     except:
-        options_parser.print_help()
+        OPTIONS_PARSER.print_help()
         raise
