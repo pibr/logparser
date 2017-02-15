@@ -7,7 +7,7 @@
 # Distributed under terms of the MIT license.
 
 """
-Parses provided log file according to rules given in template file and writes result file in desired format
+Parse provided log file according to rules given in template file and write result file in desired format
 """
 import csv
 from optparse import OptionParser
@@ -15,7 +15,7 @@ from optparse import OptionParser
 import textfsm
 
 def str_icomp(lhs, rhs):
-    """Compares two strins ignoring case"""
+    """compare two strins ignoring case"""
     try:
         return lhs.strip().upper() == rhs.strip().upper()
     except AttributeError:
@@ -24,7 +24,7 @@ def str_icomp(lhs, rhs):
 
 class Parser(object):
     """
-    Parses log file.
+    parse log file
     """
 
     def __init__(self, options):
@@ -36,7 +36,7 @@ class Parser(object):
         self.results = [list()]
 
     def write(self):
-        """writes data in given format"""
+        """write data in given format"""
         with open(self.output, 'w') as output_file:
             if str_icomp(self.format, 'csv'):
                 csv_writer = csv.writer(
@@ -66,7 +66,7 @@ class Parser(object):
                 output_file.write(result)
 
     def parse(self):
-        """parses input with rules applied in template"""
+        """parse input with rules applied in template"""
         # Open the template file, and initialise a new TextFSM object with it.
         fsm = textfsm.TextFSM(open(self.template))
         with open(self.input, 'r') as input_file:
@@ -79,18 +79,17 @@ if __name__ == '__main__':
     OPTIONS_PARSER = OptionParser()
     OPTIONS_PARSER.add_option("-i", "--input",
                               action="store", type="string", dest="input", default="input.log",
-                              help="reads input to parse from FILE", metavar="FILE")
+                              help="read input to parse from IN_FILE", metavar="IN_FILE")
     OPTIONS_PARSER.add_option("-o", "--output",
                               action="store", type="string", dest="output", default="output.txt",
-                              help="reads input to parse from FILE", metavar="FILE")
+                              help="store parse result to OUT_FILE", metavar="OUT_FILE")
     OPTIONS_PARSER.add_option("-f", "--format",
                               action="store", type="string", dest="format", default="csv",
                               help="define output file FORMAT: csv, jira, nice [default: %default]", metavar="FORMAT")
     OPTIONS_PARSER.add_option("-t", "--template",
                               action="store", type="string", dest="template", default="siegemem_template",
-                              help="reads parsing rules from template FILE", metavar="FILE")
+                              help="read parsing rules from TEMPLATE", metavar="TEMPLATE")
 
-    OPTIONS_PARSER.set_usage('usage: logparser.py [options]')
     (OPTIONS, ARGS) = OPTIONS_PARSER.parse_args()
     try:
         PARSER = Parser(OPTIONS)

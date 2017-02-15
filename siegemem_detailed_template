@@ -1,4 +1,4 @@
-#parses input created with command "for file in `ls -rt siegemem_tracking/`; do stat $file | grep "Modify:" >> results.txt; cat $file > results.txt; done"
+#parses input created with command "truncate -s 0 input.txt; for file in `ls -rt siegemem_tracking/`; do stat siegemem_tracking/$file | grep "Modify:" >> input.txt; cat siegemem_tracking/$file >> input.txt; done"
 Value Filldown Timestamp (\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d)
 Value Required Class (\S+)
 Value Required MemoryUsed (\d+)

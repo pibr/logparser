@@ -67,37 +67,41 @@ class DataRenderer(object):
             df[col_name] = pd.to_numeric(df[col_name])
 
     @staticmethod
-    def visualise(counter, data_frame):
+    def render(counter, data_frame):
         if counter == 0:
             DataRenderer.__finalise()
             return
         else:
-            extream_value = data_frame.loc[
-                data_frame[DataRenderer.values_column_name].idxmax()]
-            value = extream_value[DataRenderer.filter_column_name]
-            name = str(extream_value['Name']) + ' ' + '[' + str(value) + ']'
-            # for col in T.units:
-            #    extream_value[col] = Common.inUnits(
-            #        extream_value[col], col, Common.values_unit)
-            print(extream_value)
-            df_filtered = data_frame.loc[
-                data_frame[DataRenderer.filter_column_name] == value]
-            df_new = data_frame.loc[
-                data_frame[DataRenderer.filter_column_name] != value]
-            if DataRenderer.index_unit == 'datetime':
-                df_filtered[DataRenderer.index_column_name] = df_filtered[
-                    DataRenderer.index_column_name].apply(pd.to_datetime)
-            if DataRenderer.values_unit == 'counter':
-                df_filtered[DataRenderer.values_column_name] = pd.to_numeric(df_filtered[
-                    DataRenderer.values_column_name])
+            filter_value_name = ''
+            df_filtered = data_frame
+            df_new = None
+            if  DataRenderer.filter_column_name != '':
+                extream_value = data_frame.loc[
+                    data_frame[DataRenderer.values_column_name].idxmax()]
+                filter_value_name = extream_value[DataRenderer.filter_column_name]
+                print(extream_value)
+                df_filtered = data_frame.loc[
+                    data_frame[DataRenderer.filter_column_name] == filter_value_name]
+                df_new = data_frame.loc[
+                    data_frame[DataRenderer.filter_column_name] != filter_value_name]
+            else:
+                counter = 1
+
+            DataRenderer.__convert(
+                df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
+            DataRenderer.__convert(
+                df_filtered, DataRenderer.values_column_name, DataRenderer.values_unit)
             DataRenderer.ax = df_filtered.plot(
-                ax=DataRenderer.ax, label=name, x=DataRenderer.index_column_name, y=DataRenderer.values_column_name)
-            DataRenderer.visualise(counter - 1, df_new)
+                ax=DataRenderer.ax, label=filter_value_name, x=DataRenderer.index_column_name, y=DataRenderer.values_column_name)
+            DataRenderer.render(counter - 1, df_new)
 
     @staticmethod
-    def visualise_values(values, data_frame):
+    def render_filtered(values, data_frame):
         if not values:
-            DataRenderer.__finalise()
+            if DataRenderer.iterations > 0:
+                DataRenderer.render(DataRenderer.iterations, data_frame)
+            else:
+                DataRenderer.__finalise()
             return
         else:
             value = values[0]
@@ -109,34 +113,25 @@ class DataRenderer(object):
                 extream_value = df_filtered.loc[
                     df_filtered[DataRenderer.values_column_name].idxmax()]
                 print(extream_value)
-            #name = str(extream_value[
-            #           Common.filter_column_name]) + ' ' + '[' + str(value) + ']'
-            # for col in T.units:
-            #    extream_value[col] = Common.inUnits(extream_value[col], col, T.units)
-            print(extream_value)
+
             df_new = data_frame.loc[
                 data_frame[DataRenderer.filter_column_name] != value]
             DataRenderer.__convert(
                 df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
             DataRenderer.__convert(
                 df_filtered, DataRenderer.values_column_name, DataRenderer.values_unit)
-            # if Common.index_unit == 'datetime':
-            #    df_filtered[Common.index_column_name] = pd.to_datetime(df_filtered[
-            #        Common.index_column_name], infer_datetime_format=True)
-            # if Common.values_unit == 'counter':
-            #    df_filtered[Common.values_column_name] = df_filtered[
-            #        Common.values_column_name].apply(pd.to_numeric)
+
             DataRenderer.ax = df_filtered.plot(
                 ax=DataRenderer.ax, label=value, x=DataRenderer.index_column_name, y=DataRenderer.values_column_name,)
-            DataRenderer.visualise_values(values, df_new)
+            DataRenderer.render_filtered(values, df_new)
 
     @staticmethod
     def process_input():
         data_frame = pd.read_csv(DataRenderer.inputfile, delimiter=';')
         if not DataRenderer.filter_values:
-            DataRenderer.visualise(DataRenderer.iterations, data_frame)
+            DataRenderer.render(DataRenderer.iterations, data_frame)
         else:
-            DataRenderer.visualise_values(DataRenderer.filter_values, data_frame)
+            DataRenderer.render_filtered(DataRenderer.filter_values, data_frame)
 
 
 def main(options):
@@ -152,8 +147,10 @@ def main(options):
             DataRenderer.comparator = 'max'
         DataRenderer.index_column_name = options.index_column
         filter_col = map(str.strip, options.filter.split(','))
-        DataRenderer.filter_column_name = filter_col.pop(0)
-        DataRenderer.filter_values = filter_col
+        if len(filter_col) > 0:
+            DataRenderer.filter_column_name = filter_col.pop(0)
+            if len(filter_col) > 1:
+                DataRenderer.filter_values = filter_col
         DataRenderer.values_column_name = options.values_column
         DataRenderer.index_unit = map(str.strip, options.units.split(','))[0]
         DataRenderer.values_unit = map(str.strip, options.units.split(','))[1]
@@ -175,7 +172,7 @@ if __name__ == "__main__":
                               action="store", type="string", dest="plots_no", default="1,max",
                               help="sets number of plots to draw", metavar="PLOTS")
     OPTIONS_PARSER.add_option("-f", "--filter",
-                              action="store", type="string", dest="filter", default=",",
+                              action="store", type="string", dest="filter", default="",
                               help="define column for filtering and FILTER value separated by comma [default: %default]"
                               , metavar="FILTER")
     OPTIONS_PARSER.add_option("-y", "--y_values",
@@ -188,10 +185,9 @@ if __name__ == "__main__":
                               action="store", type="string", dest="index_column", default="Timestamp",
                               help="defines indexing column INDEX_COLUMN", metavar="INDEX_COLUMN")
     OPTIONS_PARSER.add_option("-u", "--units",
-                              action="store", type="string", dest="units", default=",",
+                              action="store", type="string", dest="units", default="datetime,counter",
                               help="defines units of x and y axis separated by comma", metavar="UNITS")
 
-    #OPTIONS_PARSER.set_usage('usage: logparser.py [options]')
     (OPTIONS, ARGS) = OPTIONS_PARSER.parse_args()
     try:
         main(OPTIONS)
