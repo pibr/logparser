@@ -149,7 +149,7 @@ def main(options):
         filter_col = map(str.strip, options.filter.split(','))
         if len(filter_col) > 0:
             DataRenderer.filter_column_name = filter_col.pop(0)
-            if len(filter_col) > 1:
+            if len(filter_col) > 0:
                 DataRenderer.filter_values = filter_col
         DataRenderer.values_column_name = options.values_column
         DataRenderer.index_unit = map(str.strip, options.units.split(','))[0]
