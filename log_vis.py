@@ -75,16 +75,18 @@ class DataRenderer(object):
             filter_value_name = ''
             df_filtered = data_frame
             df_new = None
-            if  DataRenderer.filter_column_name != '':
+            if DataRenderer.filter_column_name != '':
                 extream_value = data_frame.loc[
                     data_frame[DataRenderer.values_column_name].idxmax()]
-                filter_value_name = extream_value[DataRenderer.filter_column_name]
+                filter_value_name = extream_value[
+                    DataRenderer.filter_column_name]
                 print(extream_value)
                 df_filtered = data_frame.loc[
                     data_frame[DataRenderer.filter_column_name] == filter_value_name]
                 df_new = data_frame.loc[
                     data_frame[DataRenderer.filter_column_name] != filter_value_name]
             else:
+                filter_value_name = DataRenderer.values_column_name
                 counter = 1
 
             DataRenderer.__convert(
@@ -112,7 +114,11 @@ class DataRenderer(object):
             if DataRenderer.comparator == 'max':
                 extream_value = df_filtered.loc[
                     df_filtered[DataRenderer.values_column_name].idxmax()]
-                print(extream_value)
+            elif DataRenderer.comparator == 'min':
+                extream_value = df_filtered.loc[
+                    df_filtered[DataRenderer.values_column_name].idxmin()]
+
+            print(extream_value)
 
             df_new = data_frame.loc[
                 data_frame[DataRenderer.filter_column_name] != value]
@@ -131,7 +137,8 @@ class DataRenderer(object):
         if not DataRenderer.filter_values:
             DataRenderer.render(DataRenderer.iterations, data_frame)
         else:
-            DataRenderer.render_filtered(DataRenderer.filter_values, data_frame)
+            DataRenderer.render_filtered(
+                DataRenderer.filter_values, data_frame)
 
 
 def main(options):
@@ -145,15 +152,19 @@ def main(options):
             DataRenderer.comparator = options.plots_no.split(',')[1].strip()
         else:
             DataRenderer.comparator = 'max'
-        DataRenderer.index_column_name = options.index_column
+        index_column = map(str.strip, options.index_column.split(','))
+        DataRenderer.index_column_name = index_column[0]
+        if len(index_column) > 1:
+            DataRenderer.index_unit = index_column[1]
         filter_col = map(str.strip, options.filter.split(','))
         if len(filter_col) > 0:
             DataRenderer.filter_column_name = filter_col.pop(0)
             if len(filter_col) > 0:
                 DataRenderer.filter_values = filter_col
-        DataRenderer.values_column_name = options.values_column
-        DataRenderer.index_unit = map(str.strip, options.units.split(','))[0]
-        DataRenderer.values_unit = map(str.strip, options.units.split(','))[1]
+        values_column = map(str.strip, options.values_column.split(','))
+        DataRenderer.values_column_name = values_column[0]
+        if len(values_column) > 1:
+            DataRenderer.values_unit = values_column[1]
 
     print('Matplotlib version ' + matplotlib.__version__)
     print ('Input file is ', DataRenderer.inputfile)
@@ -168,28 +179,23 @@ if __name__ == "__main__":
     OPTIONS_PARSER.add_option("-o", "--output",
                               action="store", type="string", dest="output", default="output.txt",
                               help="stores output to FILE", metavar="FILE")
-    OPTIONS_PARSER.add_option("-n", "--num_plots",
-                              action="store", type="string", dest="plots_no", default="1,max",
-                              help="sets number of plots to draw", metavar="PLOTS")
-    OPTIONS_PARSER.add_option("-f", "--filter",
-                              action="store", type="string", dest="filter", default="",
-                              help="define column for filtering and FILTER value separated by comma [default: %default]"
-                              , metavar="FILTER")
-    OPTIONS_PARSER.add_option("-y", "--y_values",
-                              action="store", type="string", dest="values_column", default="",
-                              help="defines column with values to plot separated by comma", metavar="VALUES_COLUMN")
     OPTIONS_PARSER.add_option("-t", "--template",
                               action="store", type="string", dest="template", default="",
                               help="reads visualisation rules from TEMPLATE file", metavar="TEMPLATE")
+    OPTIONS_PARSER.add_option("-f", "--filter",
+                              action="store", type="string", dest="filter", default="",
+                              help="define column for filtering and FILTER value separated by comma e.g. \"Class,ByteCode,VTables\" will filter by \"Class\" column  producing  two plots picking values corresponding to \"ByteCode\" and \"VTables\"", metavar="FILTER")
+    OPTIONS_PARSER.add_option("-n", "--num_plots", action="store", type="string", dest="plots_no", default="1,max",
+                              help="sets number of plots to draw and method to select these e.g \"5,max\" - assuming you're filtering by \"Class\" column and visualising memory consumption will produce five plots for classes that use max memory", metavar="PLOTS")
+    OPTIONS_PARSER.add_option("-y", "--y_values",
+                              action="store", type="string", dest="values_column", default="",
+                              help="defines column VALUES_COLUMN with values to plot and their units separated by comma e.g. \"Memory,Bytes\"", metavar="VALUES_COLUMN")
     OPTIONS_PARSER.add_option("-x", "--index_column",
                               action="store", type="string", dest="index_column", default="Timestamp",
-                              help="defines indexing column INDEX_COLUMN", metavar="INDEX_COLUMN")
-    OPTIONS_PARSER.add_option("-u", "--units",
-                              action="store", type="string", dest="units", default="datetime,counter",
-                              help="defines units of x and y axis separated by comma", metavar="UNITS")
-
+                              help="defines indexing column INDEX_COLUMN and its unit separated by comma e.g. \"Timestamp,datetime\"", metavar="INDEX_COLUMN")
     (OPTIONS, ARGS) = OPTIONS_PARSER.parse_args()
     try:
+        OPTIONS_PARSER.print_help()
         main(OPTIONS)
     except:
         OPTIONS_PARSER.print_help()
