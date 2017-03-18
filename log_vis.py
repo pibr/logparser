@@ -85,6 +85,7 @@ class DataRenderer(object):
                 df_new = data_frame.loc[
                     data_frame[DataRenderer.filter_column_name] != filter_value_name]
             else:
+                filter_value_name = DataRenderer.values_column_name
                 counter = 1
 
             DataRenderer.__convert(
