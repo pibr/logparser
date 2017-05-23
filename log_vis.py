@@ -82,8 +82,14 @@ class DataRenderer(object):
             df_new = None
             for values_column_name in DataRenderer.values_column_names:
                 if DataRenderer.filter_column_name != '':
-                    extream_value = data_frame.loc[
-                        data_frame[values_column_name].idxmax()]
+                    extream_value = None
+                    if DataRenderer.comparator == 'max':
+                        extream_value = data_frame.loc[
+                            data_frame[values_column_name].idxmax()]
+                    elif DataRenderer.comparator == 'min':
+                        extream_value = data_frame.loc[
+                            data_frame[values_column_name].idxmin()]
+                        
                     filter_value_name = extream_value[
                         DataRenderer.filter_column_name]
                     print(extream_value)
@@ -126,17 +132,22 @@ class DataRenderer(object):
                     extream_value = df_filtered.loc[
                         df_filtered[values_column_name].idxmin()]
 
-                print(extream_value)
+                df_new = None
+                if extream_value != None:
+                    print(extream_value)
 
-                df_new = data_frame.loc[
-                    data_frame[DataRenderer.filter_column_name] != value]
-                DataRenderer.__convert(
-                    df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
-                DataRenderer.__convert(
-                    df_filtered, values_column_name, DataRenderer.values_unit)
+                    df_new = data_frame.loc[
+                        data_frame[DataRenderer.filter_column_name] != value]
+                    DataRenderer.__convert(
+                        df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
+                    DataRenderer.__convert(
+                        df_filtered, values_column_name, DataRenderer.values_unit)
 
-                DataRenderer.ax = df_filtered.plot(
-                    ax=DataRenderer.ax, label=value, x=DataRenderer.index_column_name, y=values_column_name)
+                    DataRenderer.ax = df_filtered.plot(
+                        ax=DataRenderer.ax, label=value, x=DataRenderer.index_column_name, y=values_column_name)
+                else:
+                    df_new = data_frame
+
                 DataRenderer.render_filtered(values, df_new)
 
     @staticmethod
@@ -203,7 +214,6 @@ if __name__ == "__main__":
                               help="defines indexing column INDEX_COLUMN and its unit separated by comma e.g. \"Timestamp,datetime\"", metavar="INDEX_COLUMN")
     (OPTIONS, ARGS) = OPTIONS_PARSER.parse_args()
     try:
-        OPTIONS_PARSER.print_help()
         main(OPTIONS)
     except:
         OPTIONS_PARSER.print_help()
