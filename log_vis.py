@@ -20,7 +20,7 @@ import numpy
 import pandas as pd
 import pylab
 from pandas import DataFrame, read_csv
-from pint import UnitRegistry
+#from pint import UnitRegistry
 
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['agg.path.chunksize'] = 10000
@@ -36,9 +36,9 @@ class DataRenderer(object):
     index_column_name = str()
     index_unit = str()
     values_unit = str()
-    values_column_name = str()
+    values_column_names = list()
 
-    ureg = UnitRegistry()
+    #ureg = UnitRegistry()
 
     @staticmethod
     def read_from_template():
@@ -47,10 +47,15 @@ class DataRenderer(object):
     @staticmethod
     def __label():
         """Produces a label for graph"""
+        label = str()
+        for name in DataRenderer.values_column_names:
+            label += name
+            label += ' '
+        label = label[:-1]
         if DataRenderer.values_unit != '':
-            return DataRenderer.values_column_name + ' ' + '[' + DataRenderer.values_unit + ']'
+                return label + ' ' + '[' + DataRenderer.values_unit + ']'
         else:
-            return DataRenderer.values_column_name
+            return label
 
     @staticmethod
     def __finalise():
@@ -75,26 +80,28 @@ class DataRenderer(object):
             filter_value_name = ''
             df_filtered = data_frame
             df_new = None
-            if DataRenderer.filter_column_name != '':
-                extream_value = data_frame.loc[
-                    data_frame[DataRenderer.values_column_name].idxmax()]
-                filter_value_name = extream_value[
-                    DataRenderer.filter_column_name]
-                print(extream_value)
-                df_filtered = data_frame.loc[
-                    data_frame[DataRenderer.filter_column_name] == filter_value_name]
-                df_new = data_frame.loc[
-                    data_frame[DataRenderer.filter_column_name] != filter_value_name]
-            else:
-                filter_value_name = DataRenderer.values_column_name
-                counter = 1
+            for values_column_name in DataRenderer.values_column_names:
+                if DataRenderer.filter_column_name != '':
+                    extream_value = data_frame.loc[
+                        data_frame[values_column_name].idxmax()]
+                    filter_value_name = extream_value[
+                        DataRenderer.filter_column_name]
+                    print(extream_value)
+                    df_filtered = data_frame.loc[
+                        data_frame[DataRenderer.filter_column_name] == filter_value_name]
+                    df_new = data_frame.loc[
+                        data_frame[DataRenderer.filter_column_name] != filter_value_name]
+                else:
+                    filter_value_name = values_column_name
+                    counter = 1
 
-            DataRenderer.__convert(
-                df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
-            DataRenderer.__convert(
-                df_filtered, DataRenderer.values_column_name, DataRenderer.values_unit)
-            DataRenderer.ax = df_filtered.plot(
-                ax=DataRenderer.ax, label=filter_value_name, x=DataRenderer.index_column_name, y=DataRenderer.values_column_name)
+                DataRenderer.__convert(
+                    df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
+                DataRenderer.__convert(
+                    df_filtered, values_column_name, DataRenderer.values_unit)
+                DataRenderer.ax = df_filtered.plot(
+                    ax=DataRenderer.ax, label=filter_value_name, x=DataRenderer.index_column_name, y=values_column_name)
+
             DataRenderer.render(counter - 1, df_new)
 
     @staticmethod
@@ -111,25 +118,26 @@ class DataRenderer(object):
             df_filtered = data_frame.loc[
                 data_frame[DataRenderer.filter_column_name] == value]
             extream_value = None
-            if DataRenderer.comparator == 'max':
-                extream_value = df_filtered.loc[
-                    df_filtered[DataRenderer.values_column_name].idxmax()]
-            elif DataRenderer.comparator == 'min':
-                extream_value = df_filtered.loc[
-                    df_filtered[DataRenderer.values_column_name].idxmin()]
+            for values_column_name in DataRenderer.values_column_names:
+                if DataRenderer.comparator == 'max':
+                    extream_value = df_filtered.loc[
+                        df_filtered[values_column_name].idxmax()]
+                elif DataRenderer.comparator == 'min':
+                    extream_value = df_filtered.loc[
+                        df_filtered[values_column_name].idxmin()]
 
-            print(extream_value)
+                print(extream_value)
 
-            df_new = data_frame.loc[
-                data_frame[DataRenderer.filter_column_name] != value]
-            DataRenderer.__convert(
-                df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
-            DataRenderer.__convert(
-                df_filtered, DataRenderer.values_column_name, DataRenderer.values_unit)
+                df_new = data_frame.loc[
+                    data_frame[DataRenderer.filter_column_name] != value]
+                DataRenderer.__convert(
+                    df_filtered, DataRenderer.index_column_name, DataRenderer.index_unit)
+                DataRenderer.__convert(
+                    df_filtered, values_column_name, DataRenderer.values_unit)
 
-            DataRenderer.ax = df_filtered.plot(
-                ax=DataRenderer.ax, label=value, x=DataRenderer.index_column_name, y=DataRenderer.values_column_name,)
-            DataRenderer.render_filtered(values, df_new)
+                DataRenderer.ax = df_filtered.plot(
+                    ax=DataRenderer.ax, label=value, x=DataRenderer.index_column_name, y=values_column_name)
+                DataRenderer.render_filtered(values, df_new)
 
     @staticmethod
     def process_input():
@@ -162,9 +170,9 @@ def main(options):
             if len(filter_col) > 0:
                 DataRenderer.filter_values = filter_col
         values_column = map(str.strip, options.values_column.split(','))
-        DataRenderer.values_column_name = values_column[0]
+        DataRenderer.values_column_names = values_column[:-1]
         if len(values_column) > 1:
-            DataRenderer.values_unit = values_column[1]
+            DataRenderer.values_unit = values_column[-1]
 
     print('Matplotlib version ' + matplotlib.__version__)
     print ('Input file is ', DataRenderer.inputfile)
